@@ -1,0 +1,128 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>LoggingLib</name>
+    </assembly>
+    <members>
+        <member name="T:LoggingLib.Logging">
+            <summary>
+            A Logging Lib
+            </summary>
+        </member>
+        <member name="E:LoggingLib.Logging.LogEvent">
+            <summary>
+            Every event will be published.
+            </summary>
+        </member>
+        <member name="E:LoggingLib.Logging.Broadcast">
+            <summary>
+            Only the log that is greater than or equal to the lowest importance will be published.
+            </summary>
+        </member>
+        <member name="P:LoggingLib.Logging.Logger">
+            <summary>
+            Root Logger.
+            </summary>
+        </member>
+        <member name="M:LoggingLib.Logging.GetLogger(System.String)">
+            <summary>
+            Get a new logger.
+            </summary>
+            <param name="name">New logger's name</param>
+            <returns>Return a new logger with the name that is specified.</returns>
+        </member>
+        <member name="M:LoggingLib.Logging.GetLogger(System.String,LoggingLib.LogBasicConfig)">
+            <summary>
+            Get a new logger.
+            </summary>
+            <param name="name">New logger's name.</param>
+            <param name="basicConfig">New logger's config.</param>
+            <returns>Return a new logger with the name that is specified.</returns>
+        </member>
+        <member name="M:LoggingLib.Logging.BasicConfig(LoggingLib.LogBasicConfig)">
+            <summary>
+            Set the logger's config.
+            </summary>
+            <param name="basicConfig">Logger's config</param>
+        </member>
+        <member name="M:LoggingLib.Logging.Debug(System.String)">
+            <summary>
+            Publish a log. Level is Debug.
+            </summary>
+            <param name="message">Log message.</param>
+        </member>
+        <member name="M:LoggingLib.Logging.Info(System.String)">
+            <summary>
+            Publish a log. Level is Info.
+            </summary>
+            <param name="message">Log message.</param>
+        </member>
+        <member name="M:LoggingLib.Logging.Warn(System.String)">
+            <summary>
+            Publish a log. Level is Warn.
+            </summary>
+            <param name="message">Log message.</param>
+        </member>
+        <member name="M:LoggingLib.Logging.Error(System.String)">
+            <summary>
+            Publish a log. Level is Error.
+            </summary>
+            <param name="message">Log message.</param>
+        </member>
+        <member name="M:LoggingLib.Logging.Critical(System.String)">
+            <summary>
+            Publish a log. Level is Critical.
+            </summary>
+            <param name="message">Log message.</param>
+        </member>
+        <member name="P:LoggingLib.LogBasicConfig.Level">
+            <summary>
+            Set the lowest importance level. Default level is Warn.
+            Log that is greater than or equal to the lowest importance will be recorded.
+            </summary>
+        </member>
+        <member name="P:LoggingLib.LogBasicConfig.FileName">
+            <summary>
+            Logging to a file. Relative path is allowed.
+            <para>"logs\logfile.log" will be represented as "{AppPath}\logs\logfile.log"</para>
+            </summary>
+        </member>
+        <member name="P:LoggingLib.LogBasicConfig.Format">
+            <summary>
+            Specify the format of the log. There are several parameters can be used.
+            <para>(level), (name), (lineno), (time), (message)</para>
+            <para>The number of lines will not be displayed if the log file output is not set.</para>
+            <para>(time) is a little special. Several parameters can be used with it.</para>
+            <para>(time:utc) (time:offset) (time:"params")</para>
+            <para>"params" format follows DateTime.ToString(). Suchlike (time:T).</para>
+            Default format is (level) (name): (message).
+            </summary>
+        </member>
+        <member name="F:LoggingLib.LogLevel.Debug">
+            <summary>
+            Detailed information, typically of interest only when diagnosing problems.
+            </summary>
+        </member>
+        <member name="F:LoggingLib.LogLevel.Info">
+            <summary>
+            Confirmation that things are working as expected.
+            </summary>
+        </member>
+        <member name="F:LoggingLib.LogLevel.Warn">
+            <summary>
+            An indication that something unexpected happened, or indicative of some problem in the near future.
+            The software is still working as expected.
+            </summary>
+        </member>
+        <member name="F:LoggingLib.LogLevel.Error">
+            <summary>
+            Due to a more serious problem, the software has not been able to perform some function.
+            </summary>
+        </member>
+        <member name="F:LoggingLib.LogLevel.Critical">
+            <summary>
+            A serious error, indicating that the program itself may be unable to continue running.
+            </summary>
+        </member>
+    </members>
+</doc>
