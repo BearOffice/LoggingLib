@@ -4,6 +4,29 @@
         <name>LoggingLib</name>
     </assembly>
     <members>
+        <member name="P:LoggingLib.LogBasicConfig.Level">
+            <summary>
+            Set the lowest importance level. Default level is Warn.
+            Log that is greater than or equal to the lowest importance will be recorded.
+            </summary>
+        </member>
+        <member name="P:LoggingLib.LogBasicConfig.FileName">
+            <summary>
+            Logging to a file. Relative path is allowed.
+            <para>"logs\logfile.log" will be represented as "{AppPath}\logs\logfile.log"</para>
+            </summary>
+        </member>
+        <member name="P:LoggingLib.LogBasicConfig.Format">
+            <summary>
+            Specify the format of the log. There are several parameters can be used.
+            <para>(level), (name), (lineno), (time), (message)</para>
+            <para>The number of lines will not be displayed if the log file output is not set.</para>
+            <para>(time) is a little special. Several parameters can be used with it.</para>
+            <para>(time:utc) (time:offset) (time:"params")</para>
+            <para>"params" format follows DateTime.ToString(). Suchlike (time:T).</para>
+            Default format is (level) (name): (message).
+            </summary>
+        </member>
         <member name="T:LoggingLib.Logging">
             <summary>
             A Logging Lib
@@ -74,29 +97,6 @@
             Publish a log. Level is Critical.
             </summary>
             <param name="message">Log message.</param>
-        </member>
-        <member name="P:LoggingLib.LogBasicConfig.Level">
-            <summary>
-            Set the lowest importance level. Default level is Warn.
-            Log that is greater than or equal to the lowest importance will be recorded.
-            </summary>
-        </member>
-        <member name="P:LoggingLib.LogBasicConfig.FileName">
-            <summary>
-            Logging to a file. Relative path is allowed.
-            <para>"logs\logfile.log" will be represented as "{AppPath}\logs\logfile.log"</para>
-            </summary>
-        </member>
-        <member name="P:LoggingLib.LogBasicConfig.Format">
-            <summary>
-            Specify the format of the log. There are several parameters can be used.
-            <para>(level), (name), (lineno), (time), (message)</para>
-            <para>The number of lines will not be displayed if the log file output is not set.</para>
-            <para>(time) is a little special. Several parameters can be used with it.</para>
-            <para>(time:utc) (time:offset) (time:"params")</para>
-            <para>"params" format follows DateTime.ToString(). Suchlike (time:T).</para>
-            Default format is (level) (name): (message).
-            </summary>
         </member>
         <member name="F:LoggingLib.LogLevel.Debug">
             <summary>

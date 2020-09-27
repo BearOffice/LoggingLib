@@ -1,6 +1,5 @@
 ﻿using System;
 using System.IO;
-using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 
 namespace LoggingLib
@@ -94,7 +93,7 @@ namespace LoggingLib
         public void Critical(string message)
             => CreateLog(LogLevel.Critical, message);
 
-        private void CreateLog(LogLevel level, string message)
+        private void CreateLog(LogLevel level, string message,bool accident = false)
         {
             var log = FormatInterpreter(level, message);
 
@@ -106,7 +105,7 @@ namespace LoggingLib
             if ((int)level >= (int)_level)
             {
                 AddBroadcast(level, message, log);
-                if (_filename != null)
+                if (_filename != null && !accident)
                     LogRecorder(log);
             }
         }
@@ -135,10 +134,19 @@ namespace LoggingLib
                 var path = Path.GetFullPath(_filename);
                 if (!File.Exists(path)) return 0;
 
-                using var reader = new StreamReader(_filename);
                 var count = 0;
-                while (reader.ReadLine() != null)
-                    count++;
+                try
+                {
+                    using var reader = new StreamReader(_filename);
+                    while (reader.ReadLine() != null)
+                        count++;
+                }
+                catch
+                {
+                    var level = LogLevel.Error;
+                    var message = "An unexpected error occurred when logger attempt to read the log file.";
+                    CreateLog(level, message, accident: true);
+                }
                 return count;
             }
 
@@ -173,71 +181,17 @@ namespace LoggingLib
             if (!Directory.Exists(Path.GetDirectoryName(path)))
                 Directory.CreateDirectory(Path.GetDirectoryName(path));
 
-            using var writer = new StreamWriter(_filename, append: true);
-            writer.WriteLine(log);
-        }
-    }
-
-    public class LogBasicConfig
-    {
-        /// <summary>
-        /// Set the lowest importance level. Default level is Warn.
-        /// Log that is greater than or equal to the lowest importance will be recorded.
-        /// </summary>
-        public LogLevel Level { get; set; } = LogLevel.Warn;
-        /// <summary>
-        /// Logging to a file. Relative path is allowed.
-        /// <para>"logs\logfile.log" will be represented as "{AppPath}\logs\logfile.log"</para>
-        /// </summary>
-        public string FileName { get; set; } = null;
-        /// <summary>
-        /// Specify the format of the log. There are several parameters can be used.
-        /// <para>(level), (name), (lineno), (time), (message)</para>
-        /// <para>The number of lines will not be displayed if the log file output is not set.</para>
-        /// <para>(time) is a little special. Several parameters can be used with it.</para>
-        /// <para>(time:utc) (time:offset) (time:"params")</para>
-        /// <para>"params" format follows DateTime.ToString(). Suchlike (time:T).</para>
-        /// Default format is (level) (name): (message).
-        /// </summary>
-        public string Format { get; set; } = "(level) (name): (message)";
-    }
-
-    public enum LogLevel
-    {
-        /// <summary>
-        /// Detailed information, typically of interest only when diagnosing problems.
-        /// </summary>
-        Debug,
-        /// <summary>
-        /// Confirmation that things are working as expected.
-        /// </summary>
-        Info,
-        /// <summary>
-        /// An indication that something unexpected happened, or indicative of some problem in the near future.
-        /// The software is still working as expected.
-        /// </summary>
-        Warn,
-        /// <summary>
-        /// Due to a more serious problem, the software has not been able to perform some function.
-        /// </summary>
-        Error,
-        /// <summary>
-        /// A serious error, indicating that the program itself may be unable to continue running.
-        /// </summary>
-        Critical,
-    }
-
-    public class LogEventArgs
-    {
-        public LogLevel Level { get; private set; }
-        public string Message { get; private set; }
-        public string Log { get; private set; }
-
-        public LogEventArgs(LogLevel level, string message, string log)
-        {
-            this.Level = level;
-            this.Message = message;
-            this.Log = log;
+            try
+            {
+                using var writer = new StreamWriter(_filename, append: true);
+                writer.WriteLine(log);
+            }
+            catch
+            {
+                var level = LogLevel.Error;
+                var message = "An unexpected error occurred when logger attempt to output the log.";
+                CreateLog(level, message, accident: true);
+            }
         }
     }
 }
