@@ -14,8 +14,10 @@
 >(Nothing here)  
   
  Lowest importance level or other setting can be changed.  
- `Logging.Logger.BasicConfig(new LogBasicConfig { Level = LogLevel.Info });`  
- `Logging.Logger.Info("I'm root.");`  
+ ```
+ Logging.Logger.BasicConfig(new LogBasicConfig { Level = LogLevel.Info });  
+ Logging.Logger.Info("I'm root.");  
+ ```
 >I'm root.  
   
 ```
