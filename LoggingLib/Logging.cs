@@ -93,7 +93,7 @@ namespace LoggingLib
         public void Critical(string message)
             => CreateLog(LogLevel.Critical, message);
 
-        private void CreateLog(LogLevel level, string message,bool accident = false)
+        private void CreateLog(LogLevel level, string message, bool accident = false)
         {
             var log = FormatInterpreter(level, message);
 
