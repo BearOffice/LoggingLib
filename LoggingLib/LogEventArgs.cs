@@ -2,19 +2,20 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace LoggingLib
-{
-    public class LogEventArgs
-    {
-        public LogLevel Level { get; private set; }
-        public string Message { get; private set; }
-        public string Log { get; private set; }
+namespace LoggingLib;
 
-        public LogEventArgs(LogLevel level, string message, string log)
-        {
-            this.Level = level;
-            this.Message = message;
-            this.Log = log;
-        }
+public record LogEventArgs
+{
+    public Logger Logger { get; init; }
+    public LogLevel Level { get; init; }
+    public string RawMessage { get; init; }
+    public string Log { get; init; }
+
+    public LogEventArgs(Logger logger, LogLevel level, string rawMessage, string log)
+    {
+        this.Logger = logger;
+        this.Level = level;
+        this.RawMessage = rawMessage;
+        this.Log = log;
     }
 }

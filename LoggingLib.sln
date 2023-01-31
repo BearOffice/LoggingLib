@@ -1,9 +1,11 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.30517.126
+# Visual Studio Version 17
+VisualStudioVersion = 17.4.33213.308
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LoggingLib", "LoggingLib\LoggingLib.csproj", "{F9C497B3-7899-4720-B167-46BF588EADEC}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LoggingLib", "LoggingLib\LoggingLib.csproj", "{F9C497B3-7899-4720-B167-46BF588EADEC}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Test", "Test\Test.csproj", "{8E54E58D-E2FC-44B0-8149-0EC0A862A799}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,6 +17,10 @@ Global
 		{F9C497B3-7899-4720-B167-46BF588EADEC}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F9C497B3-7899-4720-B167-46BF588EADEC}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F9C497B3-7899-4720-B167-46BF588EADEC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8E54E58D-E2FC-44B0-8149-0EC0A862A799}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8E54E58D-E2FC-44B0-8149-0EC0A862A799}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8E54E58D-E2FC-44B0-8149-0EC0A862A799}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8E54E58D-E2FC-44B0-8149-0EC0A862A799}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

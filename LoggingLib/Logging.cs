@@ -1,197 +1,204 @@
 ﻿using System;
-using System.IO;
-using System.Text.RegularExpressions;
+using System.Collections.Generic;
+using System.Collections.Concurrent;
+using System.Text;
 
-namespace LoggingLib
+namespace LoggingLib;
+
+/// <summary>
+/// A Logging Library.
+/// </summary>
+public static class Logging
 {
     /// <summary>
-    /// A Logging Lib
+    /// Log's event.
+    /// Every event will be published.
     /// </summary>
-    public class Logging
+    public static event Action<LogEventArgs>? LogEvent;
+    /// <summary>
+    /// Log's broadcast. Only the log that is greater than or equal to the lowest importance will be published.
+    /// </summary>
+    public static event Action<LogEventArgs>? Broadcast;
+    /// <summary>
+    /// Root Logger.
+    /// </summary>
+    public static Logger Root { get; } = new Logger("root");
+    private static readonly ConcurrentDictionary<string, Logger> _loggerDic = new ConcurrentDictionary<string, Logger>();
+    private static readonly object _rwLock = new object();
+
+    static Logging()
     {
-        /// <summary>
-        /// Every event will be published.
-        /// </summary>
-        public static event Action<LogEventArgs> LogEvent;
-        /// <summary>
-        /// Only the log that is greater than or equal to the lowest importance will be published.
-        /// </summary>
-        public static event Action<LogEventArgs> Broadcast;
-        /// <summary>
-        /// Root Logger.
-        /// </summary>
-        public static Logging Logger { get; } = new Logging();
-        private readonly string _name;
-        private LogLevel _level;
-        private string _filename;
-        private string _format;
+        _loggerDic.TryAdd(Root.Name, Root);
+    }
 
-        private Logging()
+    /// <summary>
+    /// Get the registered logger. Register a new one and return it, if the specified logger not exists.
+    /// </summary>
+    /// <param name="name">Logger's name</param>
+    public static Logger GetLogger(string name)
+    {
+        if (_loggerDic.TryGetValue(name, out var logger)) return logger;
+
+        var newLogger = new Logger(name);
+        _loggerDic.TryAdd(name, newLogger);
+        return newLogger;
+    }
+
+    /// <summary>
+    /// Determine whether the specified logger is registered.
+    /// </summary>
+    /// <param name="name">Logger's name</param>
+    /// <returns><see langword="true"/> if the specified logger is registered; otherwise, <see langword="false"/></returns>
+    public static bool IsRegistered(string name)
+    {
+        return _loggerDic.ContainsKey(name);
+    }
+
+    /// <summary>
+    /// Register the specified logger.
+    /// </summary>
+    /// <param name="logger"></param>
+    public static void RegisterLogger(Logger logger)
+    {
+        if (!_loggerDic.TryAdd(logger.Name, logger))
         {
-            _name = "root";
-            BasicConfig(new LogBasicConfig());
+            PublishLogBase(Root.Name, LogLevel.Error, $"Failed to add logger '{logger.Name}'.", internalLog: true);
+        }
+    }
+
+    /// <summary>
+    /// Unregister logger. Root logger cannot be unregister.
+    /// </summary>
+    /// <param name="name">The logger to be deregistered.</param>
+    public static void UnregisterLogger(string name)
+    {
+        if (name == Root.Name)
+        {
+            PublishLogBase(Root.Name, LogLevel.Error, "Root logger cannot be deregistered.", internalLog: true);
+            return;
+        }
+        
+        if (!_loggerDic.TryRemove(name, out _))
+        {
+            PublishLogBase(Root.Name, LogLevel.Error, $"Failed to remove logger '{name}'.", internalLog: true);
+        }
+    }
+
+    /// <summary>
+    /// Publish a log. Level is Debug.
+    /// </summary>
+    /// <param name="message">Message.</param>
+    public static void Debug(string message)
+        => PublishLog(LogLevel.Debug, message);
+
+    /// <summary>
+    /// Publish a log. Level is Info.
+    /// </summary>
+    /// <param name="message">Message.</param>
+    public static void Info(string message)
+        => PublishLog(LogLevel.Info, message);
+
+    /// <summary>
+    /// Publish a log. Level is Warn.
+    /// </summary>
+    /// <param name="message">Message.</param>
+    public static void Warn(string message)
+        => PublishLog(LogLevel.Warn, message);
+
+    /// <summary>
+    /// Publish a log. Level is Error.
+    /// </summary>
+    /// <param name="message">Message.</param>
+    public static void Error(string message)
+        => PublishLog(LogLevel.Error, message);
+
+    /// <summary>
+    /// Publish a log. Level is Critical.
+    /// </summary>
+    /// <param name="message">Message.</param>
+    public static void Critical(string message)
+        => PublishLog(LogLevel.Crit, message);
+
+    /// <summary>
+    /// Publish a log.
+    /// </summary>
+    /// <param name="level">Log level.</param>
+    /// <param name="message">Message.</param>
+    public static void PublishLog(LogLevel level, string message)
+        => PublishLogBase(Root.Name, level, message, internalLog: false);
+
+    /// <summary>
+    /// Publish a log. Level is Debug.
+    /// </summary>
+    /// <param name="name">Logger name.</param>
+    /// <param name="message">Message.</param>
+    public static void Debug(string name, string message)
+        => PublishLog(name, LogLevel.Debug, message);
+
+    /// <summary>
+    /// Publish a log. Level is Info.
+    /// </summary>
+    /// <param name="name">Logger name.</param>
+    /// <param name="message">Message.</param>
+    public static void Info(string name, string message)
+        => PublishLog(name, LogLevel.Info, message);
+
+    /// <summary>
+    /// Publish a log. Level is Warn.
+    /// </summary>
+    /// <param name="name">Logger name.</param>
+    /// <param name="message">Message.</param>
+    public static void Warn(string name, string message)
+        => PublishLog(name, LogLevel.Warn, message);
+
+    /// <summary>
+    /// Publish a log. Level is Error.
+    /// </summary>
+    /// <param name="name">Logger name.</param>
+    /// <param name="message">Message.</param>
+    public static void Error(string name, string message)
+        => PublishLog(name, LogLevel.Error, message);
+
+    /// <summary>
+    /// Publish a log. Level is Critical.
+    /// </summary>
+    /// <param name="name">Logger name.</param>
+    /// <param name="message">Message.</param>
+    public static void Critical(string name, string message)
+        => PublishLog(name, LogLevel.Crit, message);
+
+    /// <summary>
+    /// Publish a log.
+    /// </summary>
+    /// <param name="name">Logger name.</param>
+    /// <param name="level">Log level.</param>
+    /// <param name="message">Message.</param>
+    public static void PublishLog(string name, LogLevel level, string message)
+        => PublishLogBase(name, level, message, internalLog: false);
+
+    internal static void PublishLogBase(string name, LogLevel level, string message, bool internalLog = false)
+    {
+        if (!_loggerDic.TryGetValue(name, out var logger))
+        {
+            PublishLogBase(Root.Name, LogLevel.Error, "The logger specified does not exist.", internalLog: true);
+            return;
         }
 
-        private Logging(string name, LogBasicConfig basicConfig)
+        var log = default(string);
+        
+        lock (_rwLock)
         {
-            _name = name;
-            BasicConfig(basicConfig);
-        }
-        /// <summary>
-        /// Get a new logger.
-        /// </summary>
-        /// <param name="name">New logger's name</param>
-        /// <returns>Return a new logger with the name that is specified.</returns>
-        public static Logging GetLogger(string name)
-            => new Logging(name, new LogBasicConfig());
-        /// <summary>
-        /// Get a new logger.
-        /// </summary>
-        /// <param name="name">New logger's name.</param>
-        /// <param name="basicConfig">New logger's config.</param>
-        /// <returns>Return a new logger with the name that is specified.</returns>
-        public static Logging GetLogger(string name, LogBasicConfig basicConfig)
-            => new Logging(name, basicConfig);
-        /// <summary>
-        /// Set the logger's config.
-        /// </summary>
-        /// <param name="basicConfig">Logger's config</param>
-        public void BasicConfig(LogBasicConfig basicConfig)
-        {
-            _level = basicConfig.Level;
-            _filename = basicConfig.FileName;
-            _format = basicConfig.Format;
-        }
-        /// <summary>
-        /// Publish a log. Level is Debug.
-        /// </summary>
-        /// <param name="message">Log message.</param>
-        public void Debug(string message)
-            => CreateLog(LogLevel.Debug, message);
-        /// <summary>
-        /// Publish a log. Level is Info.
-        /// </summary>
-        /// <param name="message">Log message.</param>
-        public void Info(string message)
-            => CreateLog(LogLevel.Info, message);
-        /// <summary>
-        /// Publish a log. Level is Warn.
-        /// </summary>
-        /// <param name="message">Log message.</param>
-        public void Warn(string message)
-            => CreateLog(LogLevel.Warn, message);
-        /// <summary>
-        /// Publish a log. Level is Error.
-        /// </summary>
-        /// <param name="message">Log message.</param>
-        public void Error(string message)
-            => CreateLog(LogLevel.Error, message);
-        /// <summary>
-        /// Publish a log. Level is Critical.
-        /// </summary>
-        /// <param name="message">Log message.</param>
-        public void Critical(string message)
-            => CreateLog(LogLevel.Critical, message);
-
-        private void CreateLog(LogLevel level, string message, bool accident = false)
-        {
-            var log = FormatInterpreter(level, message);
-
-            if (level == LogLevel.Debug)
-                System.Diagnostics.Debug.Print(log);
-
-            AddLogEvent(level, message, log);
-
-            if ((int)level >= (int)_level)
-            {
-                AddBroadcast(level, message, log);
-                if (_filename != null && !accident)
-                    LogRecorder(log);
-            }
+            var allowToWrite = !internalLog;
+#pragma warning disable CS8602 // Dereference of a possibly null reference.
+            log = logger.GenerateLog(level, message, allowToWrite);
+#pragma warning restore CS8602 // Dereference of a possibly null reference.
         }
 
-        private string FormatInterpreter(LogLevel level, string message)
-        {
-            var log = _format;
-            var matches = Regex.Matches(_format, @"\(.+?\)");
-            foreach (Match match in matches)
-            {
-                log = match.Value switch
-                {
-                    "(level)" => log.Replace(match.Value, level.ToString().ToUpper()),
-                    "(name)" => log.Replace(match.Value, _name),
-                    "(lineno)" when _filename != null => log.Replace(match.Value, (GetLineNo() + 1).ToString()),
-                    "(lineno)" when _filename == null => log.Replace(match.Value, ""),
-                    "(message)" => log.Replace(match.Value, message),
-                    _ when IsTime(match.Value, out string time) => log.Replace(match.Value, time),
-                    _ => log,
-                };
-            }
-            return log;
+        if (level == LogLevel.Debug)
+            System.Diagnostics.Debug.Print(log);
 
-            int GetLineNo()
-            {
-                var path = Path.GetFullPath(_filename);
-                if (!File.Exists(path)) return 0;
-
-                var count = 0;
-                try
-                {
-                    using var reader = new StreamReader(_filename);
-                    while (reader.ReadLine() != null)
-                        count++;
-                }
-                catch
-                {
-                    var level = LogLevel.Error;
-                    var message = "An unexpected error occurred when logger attempt to read the log file.";
-                    CreateLog(level, message, accident: true);
-                }
-                return count;
-            }
-
-            static bool IsTime(string value, out string time)
-            {
-                var match = Regex.Match(value, @"\(time\)|\(time:(.+?)\)");
-                if (!match.Success)
-                {
-                    time = "";
-                    return false;
-                }
-
-                time = match.Groups[1].Value switch
-                {
-                    "utc" => DateTime.UtcNow.ToString(),
-                    "offset" => DateTimeOffset.Now.ToString(),
-                    _ => DateTime.Now.ToString(match.Groups[1].Value),
-                };
-                return true;
-            }
-        }
-
-        private static void AddLogEvent(LogLevel level, string message, string log)
-            => LogEvent?.Invoke(new LogEventArgs(level, message, log));
-
-        private static void AddBroadcast(LogLevel level, string message, string log)
-            => Broadcast?.Invoke(new LogEventArgs(level, message, log));
-
-        private void LogRecorder(string log)
-        {
-            var path = Path.GetFullPath(_filename);
-            if (!Directory.Exists(Path.GetDirectoryName(path)))
-                Directory.CreateDirectory(Path.GetDirectoryName(path));
-
-            try
-            {
-                using var writer = new StreamWriter(_filename, append: true);
-                writer.WriteLine(log);
-            }
-            catch
-            {
-                var level = LogLevel.Error;
-                var message = "An unexpected error occurred when logger attempt to output the log.";
-                CreateLog(level, message, accident: true);
-            }
-        }
+        LogEvent?.Invoke(new LogEventArgs(logger, level, message, log));
+        if (level >= logger.Level)
+            Broadcast?.Invoke(new LogEventArgs(logger, level, message, log));
     }
 }
