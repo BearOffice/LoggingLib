@@ -126,16 +126,18 @@ public class Logger
 
     private static bool TryWriteLog(string path, string log)
     {
-        var dirName = System.IO.Path.GetDirectoryName(path);
-        if (!Directory.Exists(dirName))
-        {
-#pragma warning disable CS8604 // Possible null reference argument.
-            Directory.CreateDirectory(dirName);
-#pragma warning restore CS8604 // Possible null reference argument.
-        }
+        path = System.IO.Path.GetFullPath(path);
 
         try
         {
+            var dirName = System.IO.Path.GetDirectoryName(path);
+            if (!Directory.Exists(dirName))
+            {
+#pragma warning disable CS8604 // Possible null reference argument.
+                Directory.CreateDirectory(dirName);
+#pragma warning restore CS8604 // Possible null reference argument.
+            }
+
             using var writer = new StreamWriter(path, append: true);
             writer.WriteLine(log);
             return true;
